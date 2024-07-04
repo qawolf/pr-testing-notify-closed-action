@@ -1,0 +1,22 @@
+name: "QA Wolf PR Testing Notify Closed"
+description: "Inform QA Wolf when a PR gets closed"
+branding:
+  icon: "git-merge"
+  color: "purple"
+inputs:
+  ignore-head-environment-not-found-error:
+    description: "`true` if the action should ignore the error when the head environment is not found. If unsure, leave this input empty."
+    required: false
+    default: "false"
+  qawolf-api-key:
+    description: "QA Wolf API key"
+    required: true
+  base-environments-mapping:
+    required: true
+    description: >
+      A JSON-formatted array where each member defines a correspondence between a QA Wolf environment
+      and a VCS branch. E2E testing will only work when the base branch for a PR has a mapped environment alias.
+      Example: [{ "environmentAlias": "develop", "vcsBranch": "main" }]
+runs:
+  using: "node20"
+  main: "dist/index.js"
