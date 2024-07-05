@@ -37134,6 +37134,12 @@ exports.domainFailureToAbortResult = domainFailureToAbortResult;
 const utils_1 = __nccwpck_require__(4793);
 function domainFailureToAbortResult({ log, result, methodName, }) {
     switch (result.failureCode) {
+        case "run-creation-failed":
+            log.error(`❌ [${methodName}] Run creation failed: ${result.failureDetails}. Aborting.`);
+            return {
+                abortReason: result.failureCode,
+                outcome: "aborted",
+            };
         case "base-environment-not-found":
             log.error(`❌ [${methodName}] Base environment not found. Aborting.`);
             return {
@@ -37221,7 +37227,7 @@ function graphQLErrorToAbortResult({ graphQLPayload, log, methodName, }) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.retryWithExponentialBackoff = retryWithExponentialBackoff;
 const utils_1 = __nccwpck_require__(4793);
-async function retryWithExponentialBackoff({ maxRetries, runOnce, log, methodName, }) {
+async function retryWithExponentialBackoff({ maxRetries, runOnce, log, methodName, retriableAbortReasons, }) {
     let attemptNumber = 0;
     let result;
     do {
@@ -37230,7 +37236,7 @@ async function retryWithExponentialBackoff({ maxRetries, runOnce, log, methodNam
         result = await runOnce();
         // If success or non-recoverable error, return immediately
         if (result.outcome === "success" ||
-            !["network-error", "server-error"].includes(result.abortReason)) {
+            !retriableAbortReasons.includes(result.abortReason)) {
             return result;
         }
         // Exit if max retries reached
@@ -37334,6 +37340,11 @@ async function notifyVCSBranchBuildDeployed(deps, apiConfig, input) {
         log: deps.log,
         maxRetries,
         methodName: "notifyVCSBranchBuildDeployed",
+        retriableAbortReasons: [
+            "network-error",
+            "server-error",
+            "run-creation-failed",
+        ],
         runOnce: () => runNotifyVCSBranchBuildDeployedOnce(deps, apiConfig, input),
     });
 }
@@ -37386,6 +37397,10 @@ async function notifyVCSBranchMergeCanceled(deps, apiConfig, input) {
         log: deps.log,
         maxRetries,
         methodName: "notifyVCSBranchMergeCanceled",
+        retriableAbortReasons: [
+            "network-error",
+            "server-error",
+        ],
         runOnce: () => runNotifyVCSMergeCanceledOnce(deps, apiConfig, input),
     });
 }
@@ -37448,6 +37463,10 @@ async function notifyVCSBranchMergeCompleted(deps, apiConfig, input) {
         log: deps.log,
         maxRetries,
         methodName: "notifyVCSBranchMergeCompleted",
+        retriableAbortReasons: [
+            "network-error",
+            "server-error",
+        ],
         runOnce: () => runNotifyVCSBranchMergeCompletedOnce(deps, apiConfig, input),
     });
 }
@@ -37473,6 +37492,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.makeQaWolfSdk = makeQaWolfSdk;
 const tslib_1 = __nccwpck_require__(36);
+const utils_1 = __nccwpck_require__(4793);
 const fetch_1 = __nccwpck_require__(3704);
 const log_1 = __nccwpck_require__(4734);
 const serviceBase_1 = __nccwpck_require__(1919);
@@ -37485,7 +37505,11 @@ function makeQaWolfSdk({ apiKey, serviceBase = serviceBase_1.defaultServiceBase,
         throw new Error(`QA Wolf CI-SDK requires fetch to be defined. Make sure you are using NodeJS 18+, OR pass a fetch polyfill to the makeQaWolfSdk function.
 We recommend 'undici' package for that purpose. See the Requirement section of our README for more guidance.`);
     }
-    const deps = { fetch, log };
+    const deps = {
+        // Versions of fetch may have different default timeouts. For consistency, we explicitly set it to 60 seconds here.
+        fetch: (0, utils_1.buildFetchWithTimeout)(fetch, 60000),
+        log,
+    };
     const apiConfig = { apiKey, serviceBase };
     return {
         attemptNotifyDeploy: attempt_deploy_1.attemptNotifyDeploy.bind(null, deps, apiConfig),
@@ -37506,6 +37530,7 @@ tslib_1.__exportStar(__nccwpck_require__(2799), exports);
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildFetchWithTimeout = void 0;
 exports.sleep = sleep;
 exports.pluralize = pluralize;
 exports.assertType = assertType;
@@ -37525,6 +37550,8 @@ function assertType(_value) {
 function getBackoffMs(attemptNumber, minWaitMs = 1000, maxWaitMs = 10000) {
     return Math.min(maxWaitMs, minWaitMs * 1.2 ** attemptNumber);
 }
+const buildFetchWithTimeout = (fetch, timeout) => async (...args) => fetch(args[0], { ...args[1], signal: AbortSignal.timeout(timeout) });
+exports.buildFetchWithTimeout = buildFetchWithTimeout;
 //# sourceMappingURL=utils.js.map
 
 /***/ }),
