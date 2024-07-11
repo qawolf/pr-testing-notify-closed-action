@@ -14,13 +14,10 @@ type RelevantEventData = Pick<
 export const extractRelevantDataFromEvent = ():
   | (RelevantEventData & { isValid: true })
   | { error: string; isValid: false } => {
-  if (
-    github.context.eventName !== "pull_request" &&
-    github.context.eventName !== "pull_request_target"
-  )
+  if (github.context.eventName !== "pull_request_target")
     return {
       error:
-        "This action requires to be run in a GitHub Workflow subscribing exclusively to 'pull_request' or 'pull_request_target' events. " +
+        "This action requires to be run in a GitHub Workflow subscribing exclusively to 'pull_request_target' events. " +
         "See https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target",
       isValid: false,
     };
