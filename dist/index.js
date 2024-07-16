@@ -36036,8 +36036,28 @@ exports.callNotifyVCSBranchBuildDeployedMutation = callNotifyVCSBranchBuildDeplo
 const graphql_1 = __nccwpck_require__(406);
 const mutationName = "notifyVCSBranchBuildDeployed";
 const mutationGql = `
-mutation NotifyVCSBranchBuildDeployed($headVcsCommitId: String!, $headEnvironmentVariablesJson: String!, $baseEnvironmentAlias: String!, $headEnvironmentAlias: String!) {
-    ${mutationName}(headVcsCommitId: $headVcsCommitId, headEnvironmentVariablesJson: $headEnvironmentVariablesJson, baseEnvironmentAlias: $baseEnvironmentAlias, headEnvironmentAlias: $headEnvironmentAlias) {
+mutation NotifyVCSBranchBuildDeployed(
+  $headVcsCommitId: String!,
+  $headEnvironmentVariablesJson: String!,
+  $baseEnvironmentAlias: String!,
+  $headEnvironmentAlias: String!,
+  $concurrencyLimit: Int,
+  $headEnvironmentName: String,
+  $headVcsBranch: String,
+  $headVcsCommitUrl: String,
+  $pullOrMergeRequestNumber: Int
+) {
+    ${mutationName}(
+      headVcsCommitId: $headVcsCommitId,
+      headEnvironmentVariablesJson: $headEnvironmentVariablesJson,
+      baseEnvironmentAlias: $baseEnvironmentAlias,
+      headEnvironmentAlias: $headEnvironmentAlias,
+      concurrencyLimit: $concurrencyLimit,
+      headEnvironmentName: $headEnvironmentName,
+      headVcsBranch: $headVcsBranch,
+      headVcsCommitUrl: $headVcsCommitUrl,
+      pullOrMergeRequestNumber: $pullOrMergeRequestNumber
+    ) {
     outcome
     codeHostingServiceInstallationPlatform
     failureCode
@@ -37318,12 +37338,12 @@ async function runNotifyVCSBranchBuildDeployedOnce(deps, apiConfig, input) {
     }
     const result = resp.responseBody;
     if (result.outcome === "success") {
-        const codeHostingInfo = result.codeHostingServiceInstallationPlatform === undefined
+        const codeHostingInfo = result.codeHostingServiceInstallationPlatform == null
             ? ""
             : `, and code hosting service integration '${result.codeHostingServiceInstallationPlatform}'.`;
         log.info(`✅ [notifyVCSBranchBuildDeployed] Success. Run was deployed with ID: '${result.runId}'${codeHostingInfo}`);
         return {
-            codeHostingServiceInstallationType: result.codeHostingServiceInstallationPlatform,
+            codeHostingServiceInstallationType: result.codeHostingServiceInstallationPlatform ?? undefined,
             outcome: "success",
             runId: result.runId,
         };
