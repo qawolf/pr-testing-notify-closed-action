@@ -2,6 +2,8 @@
 
 This is a GitHub Action for PR testing with QA Wolf. The action must only be triggered when a pull request is closed. It notifies QA Wolf that the deployment environment is going away so that the corresponding changes to the QA Wolf environment can be included into the base environment.
 
+> ℹ️ Read our [introduction to PR Testing](https://qawolf.notion.site/VCS-Branch-Testing-45be5d10d93249aeb8c1f995d26356ec?pvs=4) to get familiar with core concepts.
+
 ## Inputs
 
 ### `qawolf-api-key`
