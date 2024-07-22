@@ -37534,7 +37534,13 @@ We recommend 'undici' package for that purpose. See the Requirement section of o
     const apiConfig = { apiKey, serviceBase };
     return {
         attemptNotifyDeploy: attempt_deploy_1.attemptNotifyDeploy.bind(null, deps, apiConfig),
+        /**
+         * @deprecated Use `experimental_vcsBranchTesting` instead.
+         */
         experimental_removeEnvironment: index_1.removeEnvironment.bind(null, deps, apiConfig),
+        /**
+         * @deprecated Use `experimental_vcsBranchTesting` instead.
+         */
         experimental_testPreview: index_1.testPreview.bind(null, deps, apiConfig),
         experimental_vcsBranchTesting: (0, vcsBranchTesting_1.makeVCSBranchTestingSDK)(apiConfig, deps),
         pollCiGreenlightStatus: poll_ci_greenlight_1.pollCiGreenlightStatus.bind(null, deps, apiConfig),
