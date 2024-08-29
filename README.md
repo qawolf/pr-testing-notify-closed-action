@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Test preview environment
-        uses: qawolf/pr-testing-notify-closed-action@v1.0.1
+        uses: qawolf/pr-testing-notify-closed-action@v1
         with:
           qawolf-api-key: "${{ secrets.QAWOLF_API_KEY }}"
           # A typical Gitflow mapping. This is very dependent on your branching
