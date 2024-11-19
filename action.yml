@@ -12,7 +12,7 @@ inputs:
     description: "QA Wolf API key"
     required: true
   base-environments-mapping:
-    required: true
+    required: false
     description: >
       A JSON-formatted array where each member defines a correspondence between a QA Wolf environment
       and a VCS branch. E2E testing will only work when the base branch for a PR has a mapped environment alias.

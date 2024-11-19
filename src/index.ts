@@ -1,9 +1,10 @@
 import * as core from "@actions/core";
+
 import { makeQaWolfSdk } from "@qawolf/ci-sdk";
 import { coreLogDriver, stringifyUnknown } from "@qawolf/ci-utils";
 
 import { extractRelevantDataFromEvent } from "./extractRelevantDataFromEvent";
-import { validateInput } from "./validateInput";
+import { getInput } from "./getInput";
 
 async function runGitHubAction() {
   const relevantEventData = extractRelevantDataFromEvent();
@@ -12,14 +13,10 @@ async function runGitHubAction() {
     return;
   }
 
-  const validationResult = validateInput();
-  if (!validationResult.isValid) {
-    core.setFailed(`Invalid input detected: ${validationResult.error}`);
-    return;
-  }
+  const inputResult = getInput();
 
   const { experimental_vcsBranchTesting } = makeQaWolfSdk(
-    { apiKey: validationResult.apiKey },
+    { apiKey: inputResult.apiKey },
     {
       // Replace default log driver with core logging.
       log: coreLogDriver,
@@ -31,11 +28,11 @@ async function runGitHubAction() {
   const mergeResult = relevantEventData.isPullRequestMerged
     ? await notifyVCSBranchMergeCompleted({
         ...relevantEventData,
-        ...validationResult,
+        ...inputResult,
       })
     : await notifyVCSBranchMergeCanceled({
         ...relevantEventData,
-        ...validationResult,
+        ...inputResult,
       });
 
   if (mergeResult.outcome === "aborted") {
@@ -44,12 +41,10 @@ async function runGitHubAction() {
         const message = `Failed to notify QA Wolf after pull request closed with reason "${mergeResult.abortReason}".
           The QA Wolf environment was either never created or it was manually deleted.`;
 
-        return validationResult.ignoreHeadEnvironmentNotFoundError
+        return inputResult.ignoreHeadEnvironmentNotFoundError
           ? coreLogDriver.warn(message)
           : core.setFailed(message);
-      } else {
-        return coreLogDriver.warn("Head environment not found. Exiting.");
-      }
+      } else return coreLogDriver.warn("Head environment not found. Exiting.");
     }
 
     core.setFailed(
